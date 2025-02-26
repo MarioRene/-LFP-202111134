@@ -48,12 +48,15 @@ public class Main {
                     }
                     break;
                 case 5:
+                    showDeveloperInfo();
+                    break;
+                case 6:
                     Logger.log("Saliendo de la aplicación...");
                     break;
                 default:
                     Logger.log("Opción no válida. Intenta de nuevo.");
             }
-        } while (option != 5);
+        } while (option != 6);
 
         scanner.close();
     }
@@ -64,7 +67,8 @@ public class Main {
         Logger.log("2. Jugar");
         Logger.log("3. Generar Reporte Mayor Ataque");
         Logger.log("4. Generar Reporte Mayor Defensa");
-        Logger.log("5. Salir");
+        Logger.log("5. Información del Desarrollador");
+        Logger.log("6. Salir");
         Logger.log("Selecciona una opción: ");
     }
 
@@ -108,4 +112,14 @@ public class Main {
             Logger.log("No hay campeón.");
         }
     }
+
+    private static void showDeveloperInfo() {
+        Logger.log("\n=== INFORMACIÓN DEL DESARROLLADOR ===");
+        Logger.log("           ¡Hola! Soy el creador        ");
+        Logger.log("  --------------------------------------");
+        Logger.log("  | Nombre: Mario Rene Merida Taracena |");
+        Logger.log("  | Carne: 202111134                   |");
+        Logger.log("  --------------------------------------");
+    }
 }
+
