@@ -16,7 +16,7 @@ public class CharacterFileReader {
             String line;
             br.readLine(); // Saltar la primera línea (encabezado)
             while ((line = br.readLine()) != null) {
-                String[] parts = line.split(" ");
+                String[] parts = line.split("\\|");
                 String name = parts[0];
                 int health = Integer.parseInt(parts[1]);
                 int attack = Integer.parseInt(parts[2]);
