@@ -12,19 +12,26 @@ public class CharacterFileReader {
     public static List<Character> readCharacters(String filePath) {
         List<Character> characters = new ArrayList<>();
 
-        try (BufferedReader br = new BufferedReader(new java.io.FileReader(filePath))) {
+        try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
             String line;
             br.readLine(); // Saltar la primera línea (encabezado)
             while ((line = br.readLine()) != null) {
+                // Usar "|" como separador y eliminar espacios en blanco alrededor de los valores
                 String[] parts = line.split("\\|");
-                String name = parts[0];
-                int health = Integer.parseInt(parts[1]);
-                int attack = Integer.parseInt(parts[2]);
-                int defense = Integer.parseInt(parts[3]);
-                characters.add(new Character(name, health, attack, defense));
+                if (parts.length == 4) { // Asegurarse de que haya 4 partes: Nombre, Salud, Ataque, Defensa
+                    String name = parts[0].trim(); // Nombre
+                    int health = Integer.parseInt(parts[1].trim()); // Salud
+                    int attack = Integer.parseInt(parts[2].trim()); // Ataque
+                    int defense = Integer.parseInt(parts[3].trim()); // Defensa
+                    characters.add(new Character(name, health, attack, defense));
+                } else {
+                    System.err.println("Error: Formato incorrecto en la línea: " + line);
+                }
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            System.err.println("Error al leer el archivo: " + e.getMessage());
+        } catch (NumberFormatException e) {
+            System.err.println("Error: Formato numérico incorrecto en el archivo.");
         }
 
         return characters;
