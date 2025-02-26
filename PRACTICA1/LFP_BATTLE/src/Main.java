@@ -114,8 +114,8 @@ public class Main {
     }
 
     private static void showDeveloperInfo() {
-        Logger.log("\n=== INFORMACIÓN DEL DESARROLLADOR ===");
-        Logger.log("           ¡Hola! Soy el creador        ");
+        Logger.log("\n    === INFORMACIÓN DEL DESARROLLADOR ===");
+        Logger.log("           ¡Hola! Soy el creador");
         Logger.log("  --------------------------------------");
         Logger.log("  | Nombre: Mario Rene Merida Taracena |");
         Logger.log("  | Carne: 202111134                   |");
