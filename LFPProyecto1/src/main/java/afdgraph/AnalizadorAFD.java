@@ -8,51 +8,50 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class AnalizadorAFD {
-    public static Map<String, AFD> analizarArchivo(File archivo) throws Exception {
-        Map<String, AFD> automatas = new HashMap<>();
+    private static ArrayList<Token> todosTokens = new ArrayList<>();
+    private static ArrayList<Error> todosErrores = new ArrayList<>();
+
+    public static Map<String, AFD> analizarArchivo(File archivo, boolean mantenerAnteriores) throws Exception {
+        if (!mantenerAnteriores) {
+            todosTokens.clear();
+            todosErrores.clear();
+        }
+        
         BufferedReader lector = new BufferedReader(new FileReader(archivo));
         StringBuilder contenido = new StringBuilder();
         String linea;
         
-        // Leer todo el archivo
         while ((linea = lector.readLine()) != null) {
             contenido.append(linea).append("\n");
         }
         lector.close();
         
-        // Analizar léxicamente
         Scanner scanner = new Scanner(contenido.toString());
-        ArrayList<Token> tokens = new ArrayList<>();
+        ArrayList<Token> tokensArchivo = new ArrayList<>();
         Token token;
         do {
             token = scanner.siguiente_token();
             if (token.tipo != TOK.EOF) {
-                tokens.add(token);
+                tokensArchivo.add(token);
             }
         } while (token.tipo != TOK.EOF);
         
-        // Mostrar errores léxicos
-        if (!scanner.errors.isEmpty()) {
-            System.err.println("=== Errores léxicos encontrados ===");
-            for (Error error : scanner.errors) {
-                System.err.println(error);
-            }
-        }
+        todosTokens.addAll(tokensArchivo);
+        todosErrores.addAll(scanner.errors);
         
-        // Construir AFD desde los tokens
-        return construirAFD(tokens, scanner.errors);
+        Map<String, AFD> nuevosAutomatas = construirAFD(tokensArchivo, scanner.errors);
+        
+        return nuevosAutomatas;
     }
     
     private static Map<String, AFD> construirAFD(ArrayList<Token> tokens, ArrayList<Error> errores) {
         Map<String, AFD> automatas = new HashMap<>();
         AFD afdActual = null;
         int i = 0;
-        int totalAFDs = 0;
         
         while (i < tokens.size()) {
             Token token = tokens.get(i);
             
-            // Buscar definición de nuevo AFD (formato: nombre: {)
             if (token.tipo == TOK.TK_identificador && i+1 < tokens.size() && 
                 tokens.get(i+1).tipo == TOK.TK_dosPuntos && i+2 < tokens.size() && 
                 tokens.get(i+2).tipo == TOK.TK_llaveIzq) {
@@ -60,8 +59,7 @@ public class AnalizadorAFD {
                 String nombreAFD = token.lexema;
                 afdActual = new AFD(nombreAFD);
                 automatas.put(nombreAFD, afdActual);
-                totalAFDs++;
-                i += 3; // Saltar nombre, : y {
+                i += 3;
                 continue;
             }
             
@@ -214,7 +212,19 @@ public class AnalizadorAFD {
             i++;
         }
         
-        System.out.println("Procesados " + totalAFDs + " AFDs en total");
         return automatas;
+    }
+    
+    public static ArrayList<Token> getTodosTokens() {
+        return todosTokens;
+    }
+    
+    public static ArrayList<Error> getTodosErrores() {
+        return todosErrores;
+    }
+    
+    public static void limpiarDatos() {
+        todosTokens.clear();
+        todosErrores.clear();
     }
 }
