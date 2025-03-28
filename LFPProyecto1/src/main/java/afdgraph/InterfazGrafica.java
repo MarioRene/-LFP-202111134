@@ -20,6 +20,7 @@ public class InterfazGrafica extends JPanel {
     private JPanel panelAutomata;
     private JTextField txtCadena;
     private Map<String, AFD> automatas;
+    private JButton btnLimpiar;
 
     public InterfazGrafica() {
         automatas = new HashMap<>();
@@ -77,7 +78,10 @@ public class InterfazGrafica extends JPanel {
         
         add(panelBotones, BorderLayout.SOUTH);
 
-        // Configurar acciones
+        // Agregar botón Limpiar
+        btnLimpiar = new JButton("Limpiar Todo");
+        panelBotones.add(btnLimpiar);
+        
         configurarAcciones();
     }
 
@@ -86,6 +90,7 @@ public class InterfazGrafica extends JPanel {
         btnGraficar.addActionListener(e -> graficarAutoma());
         btnGenerarReportes.addActionListener(e -> generarReportes());
         btnValidar.addActionListener(e -> validarCadena());
+        btnLimpiar.addActionListener(e -> limpiarTodo());
     }
 
     private void mostrarAutomataEnPanel(AFD afd) {
@@ -151,52 +156,46 @@ public class InterfazGrafica extends JPanel {
         fileChooser.setFileFilter(new FileNameExtensionFilter("Archivos LFP (*.lfp)", "lfp"));
         
         int userSelection = fileChooser.showOpenDialog(this);
-    
+
         if (userSelection == JFileChooser.APPROVE_OPTION) {
             File fileToOpen = fileChooser.getSelectedFile();
             try {
-                // Limpiar datos anteriores
-                automatas.clear();
-                comboAutomas.removeAllItems();
-                textAreaTexto.setText("");
+                // Analizar nuevo archivo manteniendo los anteriores
+                Map<String, AFD> nuevosAutomatas = AnalizadorAFD.analizarArchivo(fileToOpen, true);
                 
-                // Analizar archivo
-                Map<String, AFD> nuevosAutomatas = AnalizadorAFD.analizarArchivo(fileToOpen);
-                automatas.putAll(nuevosAutomatas);
-                
-                if (automatas.isEmpty()) {
-                    textAreaTexto.setText("No se encontraron autómatas válidos en el archivo.");
-                } else {
-                    // Llenar combobox
-                    for (String nombreAFD : automatas.keySet()) {
-                        comboAutomas.addItem(nombreAFD);
-                    }
-                    
-                    // Mostrar resumen
-                    textAreaTexto.setText("Archivo analizado: " + fileToOpen.getName() + "\n");
-                    textAreaTexto.append("Autómatas cargados: " + automatas.size() + "\n\n");
-                    
-                    // Mostrar información de cada autómata
-                    for (AFD afd : automatas.values()) {
-                        textAreaTexto.append("=== " + afd.getNombre() + " ===\n");
-                        textAreaTexto.append("Estados: " + afd.getEstados().size() + "\n");
-                        textAreaTexto.append("Transiciones: " + countTransitions(afd) + "\n\n");
-                    }
-                    
-                    // Seleccionar el primer autómata
-                    if (!automatas.isEmpty()) {
-                        comboAutomas.setSelectedIndex(0);
-                        mostrarAutomataEnPanel(automatas.get(comboAutomas.getSelectedItem()));
-                    }
+                // Sobrescribir AFDs existentes con los nuevos
+                for (Map.Entry<String, AFD> entry : nuevosAutomatas.entrySet()) {
+                    automatas.put(entry.getKey(), entry.getValue());
                 }
+                
+                // Actualizar combobox
+                comboAutomas.removeAllItems();
+                for (String nombreAFD : automatas.keySet()) {
+                    comboAutomas.addItem(nombreAFD);
+                }
+                
+                textAreaTexto.setText("Archivo analizado exitosamente:\n" + 
+                                    fileToOpen.getAbsolutePath() + "\n\n");
+                textAreaTexto.append("Total de AFDs cargados: " + automatas.size() + "\n");
+                
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(this, 
-                    "Error al procesar el archivo:\n" + ex.getMessage(),
+                    "Error al procesar el archivo: " + ex.getMessage(),
                     "Error", JOptionPane.ERROR_MESSAGE);
                 textAreaTexto.setText("Error: " + ex.getMessage());
-                ex.printStackTrace();
             }
         }
+    }
+
+    private void limpiarTodo() {
+        automatas.clear();
+        comboAutomas.removeAllItems();
+        panelGrafo.removeAll();
+        panelAutomata.removeAll();
+        textAreaTexto.setText("");
+        AnalizadorAFD.limpiarDatos();
+        panelGrafo.repaint();
+        panelAutomata.repaint();
     }
     
     private int countTransitions(AFD afd) {
