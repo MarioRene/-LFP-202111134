@@ -13,6 +13,6 @@ public class Error {
 
     @Override
     public String toString() {
-        return "Error en " + line + ":" + column + " - " + message;
+        return "Línea " + line + ", Columna " + column + ": " + message;
     }
 }
