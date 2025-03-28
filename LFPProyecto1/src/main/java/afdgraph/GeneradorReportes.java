@@ -12,123 +12,74 @@ import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Map;
+import java.util.ArrayList;
 
 public class GeneradorReportes {
     public static void generarReportesImagenes(AFD afd, JPanel panel) {
         try {
-            // Crear carpeta reportes si no existe
             Path reportesDir = Paths.get("reportes");
             if (!Files.exists(reportesDir)) {
                 Files.createDirectories(reportesDir);
             }
 
-            // Generar nombres de archivo con fecha y hora
             String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-            String nombreTokens = "reporte_tokens_" + afd.getNombre() + "_" + timeStamp + ".jpeg";
-            String nombreErrores = "reporte_errores_" + afd.getNombre() + "_" + timeStamp + ".jpeg";
-
-            // Generar imagen de tokens
+            
+            // Reporte de Tokens (de todos los tokens cargados)
+            String nombreTokens = "reporte_tokens_" + timeStamp + ".jpeg";
             File tokensFile = reportesDir.resolve(nombreTokens).toFile();
-            generarImagenTabla(crearTablaTokens(afd), tokensFile, "Reporte de Tokens");
+            generarImagenTabla(crearTablaTokensCompleta(), tokensFile, "Reporte de Tokens (Todos los archivos)");
 
-            // Generar imagen de errores
+            // Reporte de Errores (de todos los errores detectados)
+            String nombreErrores = "reporte_errores_" + timeStamp + ".jpeg";
             File erroresFile = reportesDir.resolve(nombreErrores).toFile();
-            generarImagenTabla(crearTablaErrores(), erroresFile, "Reporte de Errores Léxicos");
+            generarImagenTabla(crearTablaErroresCompleta(), erroresFile, "Reporte de Errores Léxicos (Todos los archivos)");
 
-            // Mostrar mensaje de éxito
             JOptionPane.showMessageDialog(panel,
                 "Reportes generados exitosamente:\n" +
                 "1. " + tokensFile.getAbsolutePath() + "\n" +
                 "2. " + erroresFile.getAbsolutePath(),
                 "Reportes Generados", JOptionPane.INFORMATION_MESSAGE);
 
-            // Mostrar el reporte de tokens en el panel
             mostrarImagenEnPanel(tokensFile, panel);
 
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(panel,
                 "Error al generar reportes: " + ex.getMessage(),
                 "Error", JOptionPane.ERROR_MESSAGE);
-            ex.printStackTrace();
         }
     }
 
-    private static String[][] crearTablaTokens(AFD afd) {
-        // Calcular tamaño exacto del array
-        int numFilas = 1; // Encabezado
-        numFilas++; // Identificador
-        if (afd.getDescripcion() != null) numFilas++;
-        numFilas += afd.getEstados().size();
-        numFilas += afd.getAlfabeto().size();
+    private static String[][] crearTablaTokensCompleta() {
+        ArrayList<Token> tokens = AnalizadorAFD.getTodosTokens();
+        String[][] tabla = new String[tokens.size() + 1][4];
+        tabla[0] = new String[]{"Token", "Lexema", "Línea", "Columna"};
         
-        // Contar transiciones (ahora cada elemento es una fila separada)
-        int numTransiciones = 0;
-        for (Map<String, String> trans : afd.getTransiciones().values()) {
-            numTransiciones += trans.size() * 3; // 3 filas por transición: origen, símbolo, destino
+        for (int i = 0; i < tokens.size(); i++) {
+            Token token = tokens.get(i);
+            tabla[i+1] = new String[]{
+                token.tipo.getNombre(),
+                token.lexema,
+                String.valueOf(token.linea),
+                String.valueOf(token.columna)
+            };
         }
-        numFilas += numTransiciones;
-
-        // Contar símbolos especiales (llaves, comas, etc.)
-        numFilas += 5; // Para los símbolos especiales de la definición
-
-        // Crear array con tamaño exacto
-        String[][] tabla = new String[numFilas][4];
-        int fila = 0;
-        
-        // Encabezados
-        tabla[fila++] = new String[]{"Token", "Lexema", "Línea", "Columna"};
-        
-        // Datos del AFD
-        tabla[fila++] = new String[]{"Identificador", afd.getNombre(), "1", "1"};
-        
-        if (afd.getDescripcion() != null) {
-            tabla[fila++] = new String[]{"Descripción", afd.getDescripcion(), "2", "15"};
-        }
-        
-        // Símbolos especiales de definición
-        tabla[fila++] = new String[]{"Símbolo", "{", String.valueOf(fila), "1"};
-        tabla[fila++] = new String[]{"Símbolo", "}", String.valueOf(fila), "1"};
-        tabla[fila++] = new String[]{"Símbolo", "[", String.valueOf(fila), "1"};
-        tabla[fila++] = new String[]{"Símbolo", "]", String.valueOf(fila), "1"};
-        tabla[fila++] = new String[]{"Símbolo", ",", String.valueOf(fila), "1"};
-        
-        // Estados
-        for (String estado : afd.getEstados()) {
-            tabla[fila++] = new String[]{"Estado", estado, String.valueOf(fila), "1"};
-        }
-        
-        // Alfabeto (incluyendo todos los símbolos)
-        for (String simbolo : afd.getAlfabeto()) {
-            tabla[fila++] = new String[]{"Símbolo", simbolo, String.valueOf(fila), "1"};
-        }
-        
-        // Transiciones (separadas por tokens)
-        for (String origen : afd.getTransiciones().keySet()) {
-            for (Map.Entry<String, String> entry : afd.getTransiciones().get(origen).entrySet()) {
-                String simbolo = entry.getKey();
-                String destino = entry.getValue();
-                
-                // Estado origen
-                tabla[fila++] = new String[]{"Transición (Origen)", origen, String.valueOf(fila), "1"};
-                // Símbolo
-                tabla[fila++] = new String[]{"Transición (Símbolo)", simbolo, String.valueOf(fila), "1"};
-                // Estado destino
-                tabla[fila++] = new String[]{"Transición (Destino)", destino, String.valueOf(fila), "1"};
-            }
-        }
-        
         return tabla;
     }
 
-    private static String[][] crearTablaErrores() {
-        // Datos de ejemplo para errores léxicos
-        return new String[][]{
-            {"Carácter", "Línea", "Columna"},
-            {"@", "1", "1"},
-            {"$", "1", "2"},
-            {"~", "2", "6"},
-            {"+", "2", "8"}
-        };
+    private static String[][] crearTablaErroresCompleta() {
+        ArrayList<Error> errores = AnalizadorAFD.getTodosErrores();
+        String[][] tabla = new String[errores.size() + 1][3];
+        tabla[0] = new String[]{"Error", "Línea", "Columna"};
+        
+        for (int i = 0; i < errores.size(); i++) {
+            Error error = errores.get(i);
+            tabla[i+1] = new String[]{
+                error.message,
+                String.valueOf(error.line),
+                String.valueOf(error.column)
+            };
+        }
+        return tabla;
     }
 
     private static void generarImagenTabla(String[][] datos, File archivo, String titulo) throws IOException {
