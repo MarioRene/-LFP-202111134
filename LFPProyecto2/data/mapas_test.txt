@@ -1,0 +1,47 @@
+world "Isla del Místico" {
+  place Playa:playa at (0,0)
+  place Cueva:cueva at (2,1)
+  place Templo:templo at (3,3)
+  place Isla:isla at (1,2)
+  place Pueblo:pueblo at (4,1)
+  connect Playa to Cueva with "sendero"
+  connect Cueva to Templo with "puente"
+  connect Isla to Playa with "lancha"
+  connect Pueblo to Templo with "carretera"
+  object "Tesoro":tesoro at Cueva
+  object "Llave":llave at (3,2)
+  object "Libro":libro at Pueblo
+},
+{
+  world "Valle de las Brujas" {
+    place Entrada:jungla at (0,0)
+    place Montaña:montaña at (3,1)
+    place Cabaña:pueblo at (2,3)
+    place Pantano:pantano at (1,2)
+    place Río:río at (4,2)
+    connect Entrada to Pantano with "sendero"
+    connect Pantano to Cabaña with "camino"
+    connect Cabaña to Montaña with "teleférico"
+    connect Pantano to Río with "nado"
+    object "Poción":poción at Cabaña
+    object "Gema":gema at (3,2)
+    object "Trampa":trampa at Pantano
+    object "Bandera":bandera at Montaña
+  }
+},
+{
+  world "Montaña de Dragones" {
+    place Cueva:cueva at (0,0)
+    place Pico:montaña at (2,3)
+    place Lago:río at (1,1)
+    place Volcán:volcán at (3,2)
+    place Santuario:templo at (4,1)
+    connect Cueva to Lago with "sendero"
+    connect Lago to Pico with "camino"
+    connect Lago to Volcán with "puente"
+    connect Volcán to Santuario with "carretera"
+    object "Arma":arma at Pico
+    object "Herramienta":herramienta at (0,2)
+    object "Objeto Mágico":objeto at Santuario
+  }
+}
